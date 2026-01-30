@@ -18,6 +18,153 @@ const CHESTS = [
   { id: 'D', color: '#9B59B6', accent: '#6C3483', gems: () => Math.floor(Math.random() * 6), label: '✨' },
 ];
 
+// ─── Audio ───────────────────────────────────────────────────────────
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(type, chestId) {
+  // Resume audio context on first interaction (browser autoplay policy)
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  if (chestId === 'A') return playSoundA();
+  if (chestId === 'B') return playSoundB();
+  if (chestId === 'C') return playSoundC();
+  if (chestId === 'D') return playSoundD();
+}
+
+// Chest A: Bright triumphant chime (best reward)
+function playSoundA() {
+  const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+  notes.forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime + i * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.08 + 0.6);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime + i * 0.08);
+    osc.stop(audioCtx.currentTime + i * 0.08 + 0.6);
+  });
+}
+
+// Chest B: Warm double bell
+function playSoundB() {
+  [392, 523.25].forEach((freq, i) => { // G4, C5
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime + i * 0.12);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.12 + 0.4);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime + i * 0.12);
+    osc.stop(audioCtx.currentTime + i * 0.12 + 0.4);
+  });
+}
+
+// Chest C: Single soft pop
+function playSoundC() {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.15);
+  gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.2);
+}
+
+// Chest D: Random mystery sound every time
+function playSoundD() {
+  const variant = Math.floor(Math.random() * 5);
+
+  if (variant === 0) {
+    // Sparkly sweep up
+    for (let i = 0; i < 6; i++) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 300 + i * 150 + Math.random() * 100;
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime + i * 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.05 + 0.3);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime + i * 0.05);
+      osc.stop(audioCtx.currentTime + i * 0.05 + 0.3);
+    }
+  } else if (variant === 1) {
+    // Wobbly UFO
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    lfo.frequency.value = 8 + Math.random() * 12;
+    lfoGain.gain.value = 80;
+    lfo.connect(lfoGain).connect(osc.frequency);
+    osc.type = 'triangle';
+    osc.frequency.value = 400 + Math.random() * 300;
+    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+    osc.connect(gain).connect(audioCtx.destination);
+    lfo.start();
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.5);
+    lfo.stop(audioCtx.currentTime + 0.5);
+  } else if (variant === 2) {
+    // Bubbly blips
+    for (let i = 0; i < 4; i++) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      const f = 500 + Math.random() * 800;
+      osc.frequency.setValueAtTime(f, audioCtx.currentTime + i * 0.07);
+      osc.frequency.exponentialRampToValueAtTime(f * 0.5, audioCtx.currentTime + i * 0.07 + 0.1);
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime + i * 0.07);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.07 + 0.12);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime + i * 0.07);
+      osc.stop(audioCtx.currentTime + i * 0.07 + 0.12);
+    }
+  } else if (variant === 3) {
+    // Deep gong
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = 120 + Math.random() * 80;
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.8);
+    // Shimmer on top
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.value = 800 + Math.random() * 400;
+    gain2.gain.setValueAtTime(0.06, audioCtx.currentTime);
+    gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+    osc2.connect(gain2).connect(audioCtx.destination);
+    osc2.start();
+    osc2.stop(audioCtx.currentTime + 0.4);
+  } else {
+    // Whimsical slide
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    const startF = 200 + Math.random() * 400;
+    const endF = 600 + Math.random() * 600;
+    osc.frequency.setValueAtTime(startF, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(endF, audioCtx.currentTime + 0.25);
+    gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.35);
+  }
+}
+
 // ─── State ───────────────────────────────────────────────────────────
 
 let W, H, dpr;
@@ -36,8 +183,6 @@ let state = {
 
 // Particles
 let particles = [];
-let gemPile = [];
-let sparkles = [];
 
 // ─── Resize ──────────────────────────────────────────────────────────
 
@@ -53,7 +198,7 @@ function resize() {
 
 function layoutChests() {
   const margin = Math.min(W, H) * 0.06;
-  const topArea = H * 0.12; // gem counter area
+  const topArea = H * 0.14; // gem counter area (slightly more room)
   const availW = W - margin * 2;
   const availH = H - topArea - margin * 2;
 
@@ -182,32 +327,145 @@ function drawStar(x, y, r) {
   ctx.stroke();
 }
 
-function drawGemCounter() {
-  const counterY = H * 0.02;
-  const counterH = H * 0.08;
-  const gemSize = Math.min(counterH * 0.5, 20);
+// ─── Improved Diamond Drawing ────────────────────────────────────────
 
-  // Draw collected gems as a visual pile
-  const maxVisible = 40;
+function drawGem(x, y, size) {
+  const hw = size * 0.45;  // half width
+  const topH = size * 0.3; // crown height
+  const botH = size * 0.5; // pavilion height
+
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Pavilion (bottom triangle)
+  ctx.beginPath();
+  ctx.moveTo(-hw, -topH * 0.2);
+  ctx.lineTo(0, botH);
+  ctx.lineTo(hw, -topH * 0.2);
+  ctx.closePath();
+  const pavGrad = ctx.createLinearGradient(-hw, 0, hw, 0);
+  pavGrad.addColorStop(0, '#2980B9');
+  pavGrad.addColorStop(0.5, '#5DADE2');
+  pavGrad.addColorStop(1, '#2471A3');
+  ctx.fillStyle = pavGrad;
+  ctx.fill();
+
+  // Pavilion center facet (lighter)
+  ctx.beginPath();
+  ctx.moveTo(-hw * 0.35, -topH * 0.2);
+  ctx.lineTo(0, botH);
+  ctx.lineTo(hw * 0.35, -topH * 0.2);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.fill();
+
+  // Crown (top trapezoid)
+  ctx.beginPath();
+  ctx.moveTo(-hw, -topH * 0.2);
+  ctx.lineTo(-hw * 0.6, -topH);
+  ctx.lineTo(hw * 0.6, -topH);
+  ctx.lineTo(hw, -topH * 0.2);
+  ctx.closePath();
+  const crownGrad = ctx.createLinearGradient(0, -topH, 0, -topH * 0.2);
+  crownGrad.addColorStop(0, '#85C1E9');
+  crownGrad.addColorStop(1, '#5DADE2');
+  ctx.fillStyle = crownGrad;
+  ctx.fill();
+
+  // Table facet (top highlight)
+  ctx.beginPath();
+  ctx.moveTo(-hw * 0.35, -topH * 0.85);
+  ctx.lineTo(hw * 0.35, -topH * 0.85);
+  ctx.lineTo(hw * 0.5, -topH * 0.2);
+  ctx.lineTo(-hw * 0.5, -topH * 0.2);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.fill();
+
+  // Sparkle highlight
+  ctx.beginPath();
+  ctx.arc(-hw * 0.15, -topH * 0.6, size * 0.06, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.fill();
+
+  // Outline
+  ctx.beginPath();
+  ctx.moveTo(-hw * 0.6, -topH);
+  ctx.lineTo(hw * 0.6, -topH);
+  ctx.lineTo(hw, -topH * 0.2);
+  ctx.lineTo(0, botH);
+  ctx.lineTo(-hw, -topH * 0.2);
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Inner crown lines
+  ctx.beginPath();
+  ctx.moveTo(-hw, -topH * 0.2);
+  ctx.lineTo(-hw * 0.6, -topH);
+  ctx.moveTo(hw, -topH * 0.2);
+  ctx.lineTo(hw * 0.6, -topH);
+  ctx.moveTo(-hw * 0.35, -topH * 0.2);
+  ctx.lineTo(-hw * 0.35, -topH * 0.85);
+  ctx.moveTo(hw * 0.35, -topH * 0.2);
+  ctx.lineTo(hw * 0.35, -topH * 0.85);
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// ─── Improved Gem Counter ────────────────────────────────────────────
+
+function drawGemCounter() {
+  const counterY = H * 0.015;
+  const counterH = H * 0.10;
+  const gemSize = Math.min(counterH * 0.4, 18);
+
+  // Draw gems in rows that fill the available width
+  const padX = W * 0.08;
+  const availWidth = W - padX * 2;
+  const spacingX = gemSize * 0.9;
+  const spacingY = gemSize * 1.1;
+  const gemsPerRow = Math.max(1, Math.floor(availWidth / spacingX));
+  const maxRows = 3;
+  const maxVisible = gemsPerRow * maxRows;
+
   const count = Math.min(state.totalGems, maxVisible);
-  const startX = W / 2 - (count * gemSize * 0.6) / 2;
+  const rows = Math.ceil(count / gemsPerRow);
+  const totalH = rows * spacingY;
+  const baseY = counterY + (counterH - totalH) / 2 + gemSize * 0.5;
 
   for (let i = 0; i < count; i++) {
-    const gx = startX + i * gemSize * 0.6;
-    const gy = counterY + counterH / 2 + Math.sin(i * 0.7) * 3;
+    const row = Math.floor(i / gemsPerRow);
+    const col = i % gemsPerRow;
+    const gemsInThisRow = row < rows - 1 ? gemsPerRow : (count - row * gemsPerRow);
+    const rowW = gemsInThisRow * spacingX;
+    const rowStartX = W / 2 - rowW / 2 + spacingX / 2;
+
+    const gx = rowStartX + col * spacingX;
+    const gy = baseY + row * spacingY + Math.sin(i * 0.5 + performance.now() / 800) * 1.5;
     drawGem(gx, gy, gemSize);
   }
 
-  // If more than maxVisible, show overflow indicator
+  // If overflow, show a glowing "+N" style indicator with mini diamonds
   if (state.totalGems > maxVisible) {
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.font = `${gemSize}px sans-serif`;
-    ctx.textAlign = 'left';
-    ctx.fillText('...', startX + count * gemSize * 0.6 + 4, counterY + counterH / 2 + gemSize / 3);
+    const extra = state.totalGems - maxVisible;
+    const lastRow = rows - 1;
+    const iy = baseY + lastRow * spacingY + spacingY + 2;
+    // Draw a few tiny translucent gems trailing off
+    for (let i = 0; i < Math.min(extra, 5); i++) {
+      ctx.globalAlpha = 0.3 - i * 0.05;
+      const gx = W / 2 + (i - 2) * gemSize * 0.6;
+      drawGem(gx, iy, gemSize * 0.6);
+    }
+    ctx.globalAlpha = 1;
   }
 
   // Round indicator (subtle dots)
-  drawRoundIndicator(counterY + counterH + 4);
+  drawRoundIndicator(counterY + counterH + 6);
 }
 
 function drawRoundIndicator(y) {
@@ -231,27 +489,6 @@ function drawRoundIndicator(y) {
     }
     ctx.fill();
   }
-}
-
-function drawGem(x, y, size) {
-  ctx.fillStyle = '#5DADE2';
-  ctx.beginPath();
-  ctx.moveTo(x, y - size / 2);
-  ctx.lineTo(x + size / 3, y - size / 6);
-  ctx.lineTo(x + size / 3, y + size / 4);
-  ctx.lineTo(x, y + size / 2);
-  ctx.lineTo(x - size / 3, y + size / 4);
-  ctx.lineTo(x - size / 3, y - size / 6);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.beginPath();
-  ctx.moveTo(x, y - size / 2);
-  ctx.lineTo(x + size / 3, y - size / 6);
-  ctx.lineTo(x, y);
-  ctx.lineTo(x - size / 3, y - size / 6);
-  ctx.closePath();
-  ctx.fill();
 }
 
 // ─── Particles ───────────────────────────────────────────────────────
@@ -374,25 +611,27 @@ function drawRewardOverlay() {
 function drawIntro() {
   const t = state.introTimer;
 
-  // Pulsing hand icon
-  const pulse = 1 + Math.sin(t * 3) * 0.1;
-  const handY = H * 0.7;
-
-  ctx.save();
-  ctx.translate(W / 2, handY);
-  ctx.scale(pulse, pulse);
-  ctx.font = `${Math.min(W, H) * 0.12}px sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('👆', 0, 0);
-  ctx.restore();
-
-  // Draw chests slightly smaller with bounce-in
+  // Draw chests first (behind the hand)
   const entryScale = Math.min(1, t / 1.5);
   for (const rect of chestRects) {
     rect.scale = entryScale;
     drawChest(rect, false);
   }
+
+  // Pulsing hand icon ABOVE the chests
+  const pulse = 1 + Math.sin(t * 3) * 0.1;
+  // Position hand between gem counter area and chests
+  const topChestY = chestRects.length > 0 ? chestRects[0].y : H * 0.3;
+  const handY = topChestY - Math.min(W, H) * 0.08;
+
+  ctx.save();
+  ctx.translate(W / 2, handY);
+  ctx.scale(pulse, pulse);
+  ctx.font = `${Math.min(W, H) * 0.10}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('👆', 0, 0);
+  ctx.restore();
 }
 
 // ─── Complete Screen ─────────────────────────────────────────────────
@@ -459,6 +698,9 @@ function handleClick(px, py) {
 
   // Particles
   spawnRewardParticles(rect, gems * 4 + 5);
+
+  // Play sound
+  playSound('open', chest.id);
 
   // Log data
   const phase = state.round < LEARNING_ROUNDS ? 'learning' : 'testing';
